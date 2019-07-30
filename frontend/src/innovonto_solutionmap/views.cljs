@@ -1,32 +1,8 @@
 (ns innovonto-solutionmap.views
-  (:require [innovonto-solutionmap.db :as db]
-            [reagent.core :as reagent]))
-
-
-(defn hide-tooltip! []
-  (swap! db/app-state update-in [:tooltip] assoc :state "hidden"))
-
-(defn update-tooltip [db event idea]
-  (let [target (.-target event)
-        matrix (.translate (.getScreenCTM target) (.getAttribute target "cx") (.getAttribute target "cy"))]
-    (println "swapping db")
-    (assoc db :tooltip
-              {
-               :state   "shown"
-               :left    (str (+ (.-pageXOffset js/window) (.-e matrix) -130) "px")
-               :top     (str (+ (.-pageYOffset js/window) (.-f matrix) 10) "px")
-               :content {:image (:thumbnailPath idea) :title (:title idea) :description (:description idea)}})))
-
-(defn show-tooltip! [event idea]
-  (do
-    (println (str "Now Showing:" idea " in tooltip"))
-    (let [new-db (update-tooltip @db/app-state event idea)]
-      (println (str "New DB is: " new-db))
-      (reset! db/app-state new-db))
-
-    (println (str "Hello!!!!"))
-    (reagent/force-update-all)))
-
+  (:require [innovonto-solutionmap.events :as events]
+            [innovonto-solutionmap.subs :as subs]
+            [innovonto-solutionmap.config :as config]
+            [re-frame.core :as re-frame]))
 
 ;;TODO this hides the tooltip as soon as the mouse leaves the "circle" element. A better behaviour would be: include the tooltip div in the mouse-hover area
 ;;TODO Desired :on-click behaviour: leaves the tooltip open until the user clicks somewehere else ('pinned')
@@ -36,26 +12,49 @@
             :cy            (:y idea)
             :r             5
             :class         "idea-circle"
-            :on-mouse-over #(show-tooltip! % idea)
-            :on-click      #(swap! db/app-state update-in [:clicks] inc)}])
-;;:on-mouse-out  hide-tooltip!}])
+            :on-mouse-over #(re-frame/dispatch [::events/show-tooltip (.-target %1) idea])
+            :on-mouse-out  #(re-frame/dispatch [::events/hide-tooltip])}])
 
 
 ;;TOOLTIP STUFF
-;[idea-detail-component {:title "Rescue Window" :description "Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed."}]
+;[idea-detail-component {:title "Rescue Window" :content "Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed."}]
 (defn tooltip [config]
   (do
-    (println (str "now rerendering tooltip!" config))
+    ;;(println (str "now rerendering tooltip!" config))
     [:div.idea-detail-container {:class (:state config) :style {:top (:top config) :left (:left config)}}
      [:img {:src (:image (:content config))}]
      [:h2 (:title (:content config))]
-     [:p (:description (:content config))]]))
+     [:p (:content (:content config))]]))
 
+(defn debug-panel []
+  [:div
+   [:button {:on-click #(re-frame/dispatch [::events/debug-print-db])} "Print DB"]
+   [:button {:on-click #(re-frame/dispatch [::events/load-data])} "Load Data"]
+   [:button {:on-click #(re-frame/dispatch [::events/use-mock-backend])} "Use Mock-Backend"]
+   [:button {:on-click #(re-frame/dispatch [::events/use-live-backend])} "Use Live-Backend"]
+   [:button {:on-click #(re-frame/dispatch [::events/reset-view-box {:x 0 :y 0 :width 500 :height 500}])} "Reset Viewbox"]
+   [:button {:on-click #(re-frame/dispatch [::events/reset-view-box {:x 50 :y 50 :width 500 :height 500}])} "Move Viewbox"]
+   ])
+
+(defn foo []
+  (let [solutionmap @(re-frame/subscribe [::subs/solutionmap])]
+    [:svg {:view-box (:view-box solutionmap)}
+     [:rect {:x 0 :y 0 :width 20 :height 20}]
+     [:rect {:x 480 :y 0 :width 20 :height 20}]
+     [:rect {:x 0 :y 480 :width 20 :height 20}]
+     [:rect {:x 480 :y 480 :width 20 :height 20}]]))
+
+
+#_[:svg.solution-map {:view-box "0 0 500 500"}
+   (map idea-circle (:ideas app-state))]
 
 (defn solutionmap-app []
-  [:div
-   [tooltip (:tooltip @db/app-state)]
-   [:svg.solution-map {:view-box "0 0 500 500"}
-    (map idea-circle (:ideas @db/app-state))]])
+  (let [app-state @(re-frame/subscribe [::subs/app-state])]
+    [:div
+     (if config/debug?
+       [debug-panel])
+     [tooltip (:tooltip app-state)]
+     [:svg.solution-map {:view-box "0 0 500 500"}
+      (map idea-circle (:ideas app-state))]]))
 
 

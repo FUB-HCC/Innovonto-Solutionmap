@@ -1,51 +1,24 @@
 (ns ^:figwheel-hooks innovonto-solutionmap.core
   (:require
     [goog.dom :as gdom]
+    [re-frame.core :as re-frame]
     [innovonto-solutionmap.views :as views]
     [innovonto-solutionmap.db :as db]
-    [thi.ng.geom.viz.core :as geom]
-    [ajax.core :as ajax]
-    [reagent.core :as reagent :refer [atom]]))
+    [reagent.core :as reagent]))
 
-
-(defn build-scale [values]
-  (do
-    (geom/linear-scale [(apply min values) (apply max values)]
-                       [100 400])))
-
-(defn re-scale [x-scale y-scale idea]
-  (-> idea
-      (assoc :x (x-scale (:x idea)))
-      (assoc :y (y-scale (:y idea)))))
-
-(defn transform-all-ideas [ideas]
-  (let [x-scale (build-scale (map :x ideas))
-        y-scale (build-scale (map :y ideas))]
-    (map (partial re-scale x-scale y-scale) ideas)))
-
-(defn init-db-from-server-data [server-data]
-  (do
-    (reset! db/app-state (assoc @db/app-state :ideas (transform-all-ideas server-data)))))
-
-(defn init-error []
-  (reset! db/app-state (assoc @db/app-state :state "error")))
-
-
-(defn load-data-from-server []
-  (ajax/GET (str "/api/solutionmap-ideas")
-            {
-             :response-format :json
-             :keywords? true
-             :handler init-db-from-server-data
-             :error-handler init-error
-             }))
+(re-frame/reg-event-db
+  ::initialize-db
+  (fn [_ _]
+    db/default-db))
 
 (defn get-app-element []
   (gdom/getElement "app"))
 
-;;TODO init-database
 (defn mount [el]
+  (re-frame/clear-subscription-cache!)
+  (re-frame/dispatch-sync [::initialize-db])
   (reagent/render-component [views/solutionmap-app] el))
+
 
 (defn mount-app-element []
   (when-let [el (get-app-element)]

@@ -9,8 +9,11 @@
   :dependencies [[org.clojure/clojure "1.9.0"]
                  [org.clojure/clojurescript "1.10.339"]
                  [reagent "0.8.1"]
+                 [re-frame "0.10.6"]
+                 [day8.re-frame/http-fx "0.1.6"]
                  [thi.ng/geom "0.0.1062"]
-                 [cljs-ajax "0.7.5"]]
+                 [cljs-ajax "0.7.5"]
+                 [bidi "2.1.6"]]
 
   :source-paths ["src"]
 
