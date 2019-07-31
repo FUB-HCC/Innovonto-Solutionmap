@@ -1,8 +1,15 @@
 (ns innovonto-solutionmap.views
+  (:import [goog.async Debouncer])
   (:require [innovonto-solutionmap.events :as events]
             [innovonto-solutionmap.subs :as subs]
             [innovonto-solutionmap.config :as config]
+            [innovonto-solutionmap.util :as util]
             [re-frame.core :as re-frame]))
+
+(def display-config {
+                     :size-fn util/fixed-size
+                     :color-fn util/random-color
+                     })
 
 ;;TODO this hides the tooltip as soon as the mouse leaves the "circle" element. A better behaviour would be: include the tooltip div in the mouse-hover area
 ;;TODO Desired :on-click behaviour: leaves the tooltip open until the user clicks somewehere else ('pinned')
@@ -10,10 +17,11 @@
   [:circle {:key           (:id idea)
             :cx            (:x idea)
             :cy            (:y idea)
-            :r             0.005
+            :r             ((get display-config :size-fn) idea)
             :class         "idea-circle"
+            :style {:fill ((get display-config :color-fn) idea)}
             :on-mouse-over #(re-frame/dispatch [::events/show-tooltip (.-target %1) idea])
-            :on-mouse-out  #(re-frame/dispatch [::events/hide-tooltip])}])
+            :on-mouse-out  #((re-frame/dispatch [::events/hide-tooltip]))}])
 
 
 (defn idea-card [idea]
