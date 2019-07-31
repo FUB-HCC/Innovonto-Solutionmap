@@ -99,61 +99,78 @@ It provides a REST-API for the frontend.
 For machine learning scikit-learn, tensor-flow are used.
 
 
-###Starting the Server
+### Starting the Server
 To start the server, follow these steps:
 	(mac/linux)
 	
-	1. start a Terminal in Folder /backend
+1. start a Terminal in Folder /backend
 
-	2. Start a virtual environment: 
+2. Start a virtual environment: 
 
-		 . flask/bin/activate
+		. flask/bin/activate
 
-	3. start flask within the environment (leave out 'FLASK_ENV=development' to start in production mode):
+3. start flask within the environment (leave out 'FLASK_ENV=development' to start in production mode):
 
 		env FLASK_APP=src/app.py FLASK_ENV=development flask run
 
-	4. Server starts at http://localhost:5000/
+4. Server starts at http://localhost:5000/
 
-	5. Test it with an example GET-request (paste it in your browser URL input field): 
+5. Test it with an example GET-request (paste it in your browser URL input field): 
 
 		http://localhost:5000/solutionmap/api/v0.1/get_query_response?query=PREFIX%20gi2mo%3A%3Chttp%3A%2F%2Fpurl.org%2Fgi2mo%2Fns%23%3E%0A%0ASELECT%20%3Fidea%20%3Fcontent%0AWHERE%20%7B%0A%20%20%3Fidea%20a%20gi2mo%3AIdea.%0A%20%20%3Fidea%20gi2mo%3Acontent%20%3Fcontent.%0A%7D%0AORDER%20BY%20%3Fidea
 
-	6.  It should show a JSON object containing a list of ideas and metadata
+6.  It should show a JSON object containing a list of ideas and metadata
 
 
-###REST-API
+### REST-API
 The REST-API supports the following requests:
 
 
-####get_query_response:
-http://localhost:5000/solutionmap/api/v0.1/get_query_response?query=
-
-Parameters:
-query: SparQL Query
+#### get\_query\_response:
+	http://localhost:5000/solutionmap/api/v0.1/get_query_response?query=
 
 Returns the result of a SparQL-query to innovonto-core (https://innovonto-core.imp.fu-berlin.de). The result is a list of ideas with metadata in JSON format. This is to test the API. 
 
+##### Parameters:
 
-####get_map:
+###### query: SparQL Query
 
-http://localhost:5000/solutionmap/api/v0.1/get_map?query=<YOUR QUERY>&similarity_algorithm=<SIMILARITY ALGORITHM>&dim_reduction_algorithm=<DIMENSIONALITY REDUCTION ALGORITHM>
 
-Parameters:
 
-query: SparQL Query
+#### get_map:
 
-(optional)
-similarity_algorithm : This parameter specifies the algoritm that is used for determining the similarity between ideas. A matrix is produced, that contains the similarity value between each pair of ideas.
+	http://localhost:5000/solutionmap/api/v0.1/get_map?query=<YOUR QUERY>&similarity_algorithm=<SIMILARITY ALGORITHM>&dim_reduction_algorithm=<DIMENSIONALITY REDUCTION ALGORITHM>
 
-possible values:
-	'USE' (default): use Universal Sentence Encoder (USE) to produce sentence embeddings and cosine distance to determine similarities
-	'random': use random similarity 
-	(work in progress)
+Returns the result of a SparQL-query to innovonto-core (https://innovonto-core.imp.fu-berlin.de) **with 2D-coordinates**. The result is a list of ideas where each idea has 2D coordinates in JSON format. The mapping is performed in the following way: 
 
-(optional)
-dim_reduction_algorithm : For mapping the ideas on a 2D surface, the dimensions of the similarity matrix need to be reduced to 2. This parameter specifies the algoritm to use for performing dimensionality reduction
+1. Get the result of the SparQL-query
+2. Generate a matrix, that contains the similarity value between each pair of ideas. The algorithm to use can be specified with parameter [similarity_algorithm](#(optional)-dim\_reduction\_algorithm).
+3. Perform dimensionality reduction on the similarity matrix to obtain 2D-coordinates for each idea. The algorithm to use can be specified with parameter [dim\_reduction\_algorithm](#(optional)-dim\_reduction\_algorithm).
+4. Attach coordinates to ideas
 
-	possible values:
-		'PCA' (default): uses PCA to perform dimensionality reduction
-		'cut': use the first 2 dimensions of the similarity matrix
+
+##### Parameters:
+
+###### query 
+SparQL Query
+
+###### (optional) similarity_algorithm
+This parameter specifies the algoritm that is used for determining the similarity between ideas. A matrix is produced, that contains the similarity value between each pair of ideas.
+
+**possible values:**
+
+*'USE'* (default): use Universal Sentence Encoder (USE) to produce sentence embeddings and cosine distance to determine similarities
+
+*'random'*: use random similarity 
+	
+(more to come)
+
+
+###### (optional) dim\_reduction\_algorithm
+For mapping the ideas on a 2D surface, the dimensions of the similarity matrix need to be reduced to 2. This parameter specifies the algoritm to use for performing dimensionality reduction
+
+**possible values:**
+
+'PCA' (default): uses PCA to perform dimensionality reduction
+
+'cut': use the first 2 dimensions of the similarity matrix
