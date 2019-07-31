@@ -9,8 +9,15 @@ class Dimension_reducer():
         pca = PCA(n_components=3)
         pca_matrix = similarity_matrix.drop(['id'], axis = 1)
         pca_result = pca.fit_transform(pca_matrix)
-        similarity_matrix['x']=pca_result[:,0]
-        similarity_matrix['y']=pca_result[:,1]
+        similarity_matrix['x'] = pca_result[:,0]
+        similarity_matrix['y'] = pca_result[:,1]
+        return similarity_matrix[['id','x','y']]
+    
+    def cut(self, similarity_matrix):
+        pca_matrix = similarity_matrix.drop(['id'], axis = 1)
+        pca_result = pca.fit_transform(pca_matrix)
+        similarity_matrix['x']= similarity_matrix['dim_0']
+        similarity_matrix['y']= similarity_matrix['dim_0']
         return similarity_matrix[['id','x','y']]
 
 

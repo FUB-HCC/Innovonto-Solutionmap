@@ -7,7 +7,7 @@ from idea_embedder import Idea_embedder
 class Idea_mapper():
     dimension_reducer = Dimension_reducer()
     Idea_embedder = Idea_embedder()
-    def map_ideas(self,query_response, similarity_algorithm='random',dim_reduction_algorithm='PCA'):
+    def map_ideas(self,query_response, similarity_algorithm='USE',dim_reduction_algorithm='PCA'):
         #create JSON Object from query response
         ideas = json.loads(query_response) #pd.read_json(query_response)
         #print(ideas['results']['bindings'][0])
@@ -62,7 +62,9 @@ class Idea_mapper():
         
         if dim_reduction_algorithm is 'PCA':
             self.dimension_reducer.pca(similarity_matrix)
-            
+
+        elif dim_reduction_algorithm is 'cut':
+            self.dimension_reducer.cut(similarity_matrix)
             #coordinates = similarity_matrix['id']
         
         #TODO change clumn names to x,y 
