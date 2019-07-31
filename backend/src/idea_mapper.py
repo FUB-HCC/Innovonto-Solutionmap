@@ -2,8 +2,11 @@ import pandas as pd
 import json
 from random import random
 import numpy as np
+from dimension_reducer import Dimension_reducer
+from idea_embedder import Idea_embedder
 class Idea_mapper():
-    
+    dimension_reducer = Dimension_reducer()
+    Idea_embedder = Idea_embedder()
     def map_ideas(self,query_response, similarity_algorithm='random',dim_reduction_algorithm='PCA'):
         #create JSON Object from query response
         ideas = json.loads(query_response) #pd.read_json(query_response)
@@ -24,11 +27,13 @@ class Idea_mapper():
 
 
     def _create_similarity_matrix(self,ideas,similarity_algorithm):
+        #matrix dimensions are alway equal to the number of ideas
         matrix_dimension = len(ideas['results']['bindings'])
 
         idea_list = []
         for idea in ideas['results']['bindings']:
             idea_list.append(idea['content']['value'])
+        
 
         matrix_dimension = len(ideas['results']['bindings'])
 
@@ -56,20 +61,21 @@ class Idea_mapper():
         coordinates = similarity_matrix
         
         if dim_reduction_algorithm is 'PCA':
-            print()
+            self.dimension_reducer.pca(similarity_matrix)
+            
             #coordinates = similarity_matrix['id']
         
         #TODO change clumn names to x,y 
-        return coordinates[['id','dim_0','dim_1']]
+        return coordinates[['id','x','y']]
     
 
 
     def _attach_coordinates_to_ideas(self, ideas, coordinates):
         for i, idea in enumerate(ideas['results']['bindings']):
-            idea_coordinates = coordinates.loc[coordinates['id'] == idea['content']['value']]
+            
             #print(idea_coordinates.dim_0)
             idea['coordinates'] ={}
             #TODO change clumn names to x,y 
-            idea['coordinates']['x'] = idea_coordinates.at[i,'dim_0']
-            idea['coordinates']['y'] = idea_coordinates.at[i,'dim_1']
+            idea['coordinates']['x'] = coordinates.at[i,'x']
+            idea['coordinates']['y'] = coordinates.at[i,'y']
         return ideas
