@@ -1,19 +1,34 @@
 body {
     background-color: #E5E5E5;
+    font-family: -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,"Noto Sans",sans-serif,"Apple Color Emoji","Segoe UI Emoji","Segoe UI Symbol","Noto Color Emoji";
 }
 
 .solution-map {
     background-color: white;
-    margin: 140px;
-    width: 80%;
-    height: 600px;
+}
+
+.solution-map-container {
+    display: flex;
+}
+
+.solution-map-navigator {
+    margin-left: 30px;
+}
+
+.row {
+    display:flex;
+    justify-content: center;
+}
+
+.row p {
+    margin: 0;
+    cursor: pointer;
 }
 
 .idea-circle {
     fill: #C4C4C4;
     transition: fill .3s ease;
     cursor: pointer;
-    font-family: Helvetica, sans-serif;
 }
 
 .idea-circle:hover,
@@ -24,9 +39,12 @@ body {
 .idea-detail-container {
     visibility: hidden;
     position: absolute;
-    border: 1px solid black;
     background-color: white;
-    width: 160px;
+    max-width: 280px;
+
+    border: 1px solid rgba(0,0,0,.125);
+    border-radius: .25rem;
+    box-shadow: 2px 2px 2px 1px rgba(0, 0, 0, 0.2);
     /* Fade in tooltip - takes 1 second to go from 0% to 100% opac: */
     opacity: 0;
     transition: opacity 1s;
@@ -45,6 +63,6 @@ body {
 svg {
     outline: 1px solid black;
     width: 500px;
-    cursor: move;
-    touch-action: none;
+    /*cursor: move;
+    touch-action: none;*/
 }

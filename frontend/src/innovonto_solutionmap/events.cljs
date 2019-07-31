@@ -46,8 +46,8 @@
   (let [matrix (.translate (.getScreenCTM target) (.getAttribute target "cx") (.getAttribute target "cy"))]
     {
      :state   "shown"
-     :left    (str (+ (.-pageXOffset js/window) (.-e matrix) -130) "px")
-     :top     (str (+ (.-pageYOffset js/window) (.-f matrix) 10) "px")
+     :left    (str (+ (.-pageXOffset js/window) (.-e matrix)) "px")
+     :top     (str (+ (.-pageYOffset js/window) (.-f matrix) 30) "px")
      :content {:image (:thumbnailPath idea) :title (:title idea) :content (:content idea)}}))
 
 (re-frame/reg-event-db
