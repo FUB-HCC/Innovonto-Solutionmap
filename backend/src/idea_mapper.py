@@ -6,7 +6,7 @@ from dimension_reducer import Dimension_reducer
 from idea_embedder import Idea_embedder
 class Idea_mapper():
     dimension_reducer = Dimension_reducer()
-    Idea_embedder = Idea_embedder()
+    idea_embedder = Idea_embedder()
     def map_ideas(self,query_response, similarity_algorithm='USE',dim_reduction_algorithm='PCA'):
         #create JSON Object from query response
         ideas = json.loads(query_response) #pd.read_json(query_response)
@@ -38,19 +38,22 @@ class Idea_mapper():
         matrix_dimension = len(ideas['results']['bindings'])
 
         similarity_matrix_np = np.random.rand(matrix_dimension,matrix_dimension)
-        columns_names = ['dim_'+str(i) for i in range(matrix_dimension)]
+        
 
         similarity_matrix = pd.DataFrame()
         if similarity_algorithm is 'random':
-            #randomly initialize similarity matrix
-            similarity_matrix = pd.DataFrame(similarity_matrix_np, columns = columns_names)
+            #pass randomly initialized similarity matrix
+            pass
+            
 
             
         elif similarity_algorithm is 'USE':
             #create similarity matrix from USE embeddings
-            similarity_matrix = pd.DataFrame(similarity_matrix_np, columns = columns_names)
+            similarity_matrix_np = self.idea_embedder.USE(ideas)
         
-        similarity_matrix.insert(0,'id',idea_list)
+        
+        columns_names = ['dim_'+str(i) for i in range(matrix_dimension)]
+        similarity_matrix = pd.DataFrame(similarity_matrix_np, columns = columns_names)
         
 
         return similarity_matrix
@@ -68,7 +71,7 @@ class Idea_mapper():
             #coordinates = similarity_matrix['id']
         
         #TODO change clumn names to x,y 
-        return coordinates[['id','x','y']]
+        return coordinates[['x','y']]
     
 
 
