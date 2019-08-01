@@ -12,7 +12,20 @@
   (fn [db _]
     (:backend db)))
 
+(defn to-view-box-string [{:keys [x y width height]}]
+  (str x " " y " " width " " height))
+
 (re-frame/reg-sub
-  ::solutionmap
+  ::view-box-string
   (fn [db _]
-    (:solutionmap db)))
+    (to-view-box-string (:view-box db))))
+
+(re-frame/reg-sub
+  ::view-box
+  (fn [db _]
+    (:view-box db)))
+
+(re-frame/reg-sub
+  ::ideas
+  (fn [db _]
+    (:ideas db)))

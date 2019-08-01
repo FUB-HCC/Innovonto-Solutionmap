@@ -11,6 +11,11 @@
   (fn [_ _]
     db/default-db))
 
+(re-frame/reg-event-db
+  ::force-rerender
+  (fn [db _]
+    (assoc db :__figwheel_counter (inc (:__figwheel_counter db)))))
+
 (defn get-app-element []
   (gdom/getElement "app"))
 
@@ -26,12 +31,12 @@
 
 ;; conditionally start your application based on the presence of an "app" element
 ;; this is particularly helpful for testing this ns without launching the app
+;;TODO move this into a "run" method!
 (mount-app-element)
 
 ;; specify reload hook with ^;after-load metadata
 (defn ^:after-load on-reload []
-  (mount-app-element)
+  ;;(mount-app-element)
   ;; optionally touch your app-state to force rerendering depending on
   ;; your application
-  ;; (swap! app-state update-in [:__figwheel_counter] inc)
-  )
+  (re-frame/dispatch-sync [::force-rerender]))
