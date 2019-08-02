@@ -116,15 +116,16 @@
 (defn solution-map-svg-component []
   (let [viewbox @(re-frame/subscribe [::subs/view-box-string])
         ideas @(re-frame/subscribe [::subs/ideas])]
-    [:svg.solution-map {
-                        :view-box       viewbox
-                        :on-wheel       handle-mousewheel
-                        :on-mouse-down  handle-pointer-down
-                        :on-mouse-up    handle-pointer-up
-                        :on-mouse-leave handle-pointer-leave
-                        :on-mouse-move  handle-pointer-move
-                        }
-     (map idea-circle ideas)]))
+    [:div.solution-map-container
+     [:svg.solution-map {
+                         :view-box       viewbox
+                         :on-wheel       handle-mousewheel
+                         :on-mouse-down  handle-pointer-down
+                         :on-mouse-up    handle-pointer-up
+                         :on-mouse-leave handle-pointer-leave
+                         :on-mouse-move  handle-pointer-move
+                         }
+      (map idea-circle ideas)]]))
 
 (defn view-box-navigator []
   [:div.solution-map-navigator
@@ -132,15 +133,22 @@
    [:button {:on-click #(re-frame/dispatch [::events/zoom-out])} "-"]
    [:div.nav-controller
     [:div.row
-     [:p.up {:on-click #(re-frame/dispatch [::events/pan-up])} "\u2B9D"]]
+     [:p.up {:on-click #(re-frame/dispatch [::events/pan-up])} "↑"]]
     [:div.row
-     [:p.left {:on-click #(re-frame/dispatch [::events/pan-left])} "\u2B9C"]
-     [:p.center {:on-click #(re-frame/dispatch [::events/reset-view-box])} "⭘"]
-     [:p.right {:on-click #(re-frame/dispatch [::events/pan-right])} "\u2B9E"]
+     [:p.left {:on-click #(re-frame/dispatch [::events/pan-left])} "←"]
+     [:p.center {:on-click #(re-frame/dispatch [::events/reset-view-box])} "O"]
+     [:p.right {:on-click #(re-frame/dispatch [::events/pan-right])} "→"]
      ]
     [:div.row
-     [:p.down {:on-click #(re-frame/dispatch [::events/pan-down])} "\u2B9F"]]]
+     [:p.down {:on-click #(re-frame/dispatch [::events/pan-down])} "↓"]]]
    ])
+
+(defn toolbox []
+  [:div.toolbox
+   [:div.toolbox-header
+    [:p "Nav"]]
+   [:div.toolbox-body
+    [view-box-navigator]]])
 
 (defn header []
   [:header.navbarHeader
@@ -156,6 +164,6 @@
      [:div.container
       [:h1 "Solution Map"]
       [tooltip (:tooltip app-state)]
-      [:div.solution-map-container
+      [:div.row
        [solution-map-svg-component]
-       [view-box-navigator]]]]))
+       [toolbox]]]]))
