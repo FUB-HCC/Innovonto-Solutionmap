@@ -15,10 +15,11 @@
 
 (defn to-idea [binding]
   {
-   :id      (get-in binding [:idea :value])
-   :content (get-in binding [:content :value])
-   :x       (get-in binding [:coordinates :x])
-   :y       (get-in binding [:coordinates :y])})
+   :id            (get-in binding [:idea :value])
+   :content       (get-in binding [:content :value])
+   :cluster-label (js/parseInt (get-in binding [:cluster_label]))
+   :x             (get-in binding [:coordinates :x])
+   :y             (get-in binding [:coordinates :y])})
 
 (defn sparql-response-to-ideas [response]
   (map to-idea (get-in response [:results :bindings])))
@@ -53,6 +54,7 @@
   (fn [db [_ response]]
     (let [ideas (sparql-response-to-ideas response)
           bounding-box (calculate-bounding-box default-bounding-box ideas)]
+      (println (str "Calculated Bounding Box: " bounding-box))
       (-> db
           (assoc :ideas ideas)
           (assoc :view-box (to-view-box bounding-box))

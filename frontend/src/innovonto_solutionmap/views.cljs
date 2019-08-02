@@ -6,9 +6,10 @@
             [innovonto-solutionmap.util :as util]
             [re-frame.core :as re-frame]))
 
+
 (def display-config {
                      :size-fn util/fixed-size
-                     :color-fn util/random-color
+                     :color-fn util/map-cluster-to-color
                      })
 
 ;;TODO this hides the tooltip as soon as the mouse leaves the "circle" element. A better behaviour would be: include the tooltip div in the mouse-hover area
