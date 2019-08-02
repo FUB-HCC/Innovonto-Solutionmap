@@ -5,7 +5,6 @@ from sparql_handler import Sparql_handler
 from idea_mapper import Idea_mapper
 import json
 app = Flask(__name__)
-app.run(debug = True)
 CORS(app)
 
 dummy_query = """

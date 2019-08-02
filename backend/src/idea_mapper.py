@@ -66,6 +66,9 @@ class Idea_mapper():
         if dim_reduction_algorithm is 'PCA':
             self.dimension_reducer.pca(similarity_matrix)
 
+        elif dim_reduction_algorithm is 'TSNE':
+            self.dimension_reducer.tsne(similarity_matrix)
+
         elif dim_reduction_algorithm is 'cut':
             self.dimension_reducer.cut(similarity_matrix)
             #coordinates = similarity_matrix['id']
