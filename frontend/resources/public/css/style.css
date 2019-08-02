@@ -93,8 +93,9 @@ body {
 }
 
 svg {
-    outline: 1px solid black;
+    border: 1px solid darkgreen;
+    border-radius: .25rem;
     width: 500px;
-    /*cursor: move;
-    touch-action: none;*/
+    cursor: move;
+    touch-action: none;
 }
