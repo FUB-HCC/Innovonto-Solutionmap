@@ -1,3 +1,16 @@
+"""
+The Idea_mapper handles the logic of the application.
+The workflow is:
+1. create JSON Object from query response
+2. generate similarity matrix with specified algorithm (this is passed to Idea_embedder)
+3. perform dimensionality reduction on similarity matrix to get coordinates (this is passed to Dimension_reducer)
+4. create a JSON-object, where each idea has coordinates
+
+
+author: Michael Tebbe (michael.tebbe@fu-berlin.de)
+"""
+
+
 import pandas as pd
 import json
 from random import random
@@ -13,13 +26,13 @@ class Idea_mapper():
         #print(ideas['results']['bindings'][0])
         
         #generate similarity matrix with specified algorithm
-        similarity_matrix = self._create_similarity_matrix(ideas,similarity_algorithm)
+        similarity_matrix, labels = self._create_similarity_matrix(ideas,similarity_algorithm)
         
         #perform dimensionality reduction on similarity matrix to get coordinates
         coordinates = self._reduce_dimensions(similarity_matrix, dim_reduction_algorithm)
         
-        #create a response, where each idea has coordinates
-        ideas_with_coordinates = self._attach_coordinates_to_ideas(ideas, coordinates)
+        #create a JSON-object, where each idea has coordinates
+        ideas_with_coordinates = self._attach_coordinates_to_ideas(ideas, coordinates, labels)
                 
         return ideas_with_coordinates
         
@@ -52,11 +65,12 @@ class Idea_mapper():
             similarity_matrix_np = self.idea_embedder.USE(ideas)
         
         
-        columns_names = ['dim_'+str(i) for i in range(matrix_dimension)]
+        columns_names = ['dim_'+str(i) for i in range(similarity_matrix_np.shape[1])]
         similarity_matrix = pd.DataFrame(similarity_matrix_np, columns = columns_names)
+        labels = self.idea_embedder.cluster_kmeans(similarity_matrix_np)
         
 
-        return similarity_matrix
+        return similarity_matrix, labels
     
 
 
@@ -64,7 +78,7 @@ class Idea_mapper():
         coordinates = similarity_matrix
         
         if dim_reduction_algorithm is 'PCA':
-            self.dimension_reducer.pca(similarity_matrix)
+            self.dimension_reducer.tsne(similarity_matrix)
 
         elif dim_reduction_algorithm is 'TSNE':
             self.dimension_reducer.tsne(similarity_matrix)
@@ -73,17 +87,16 @@ class Idea_mapper():
             self.dimension_reducer.cut(similarity_matrix)
             #coordinates = similarity_matrix['id']
         
-        #TODO change clumn names to x,y 
+         
         return coordinates[['x','y']]
     
 
 
-    def _attach_coordinates_to_ideas(self, ideas, coordinates):
+    def _attach_coordinates_to_ideas(self, ideas, coordinates, labels):
+        
         for i, idea in enumerate(ideas['results']['bindings']):
-            
-            #print(idea_coordinates.dim_0)
             idea['coordinates'] ={}
-            #TODO change clumn names to x,y 
-            idea['coordinates']['x'] = coordinates.at[i,'x']
-            idea['coordinates']['y'] = coordinates.at[i,'y']
+            idea['coordinates']['x'] = str(coordinates.at[i,'x'])
+            idea['coordinates']['y'] = str(coordinates.at[i,'y'])
+            idea['cluster_label'] = str(labels[i])
         return ideas

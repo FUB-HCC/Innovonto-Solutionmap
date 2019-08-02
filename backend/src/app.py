@@ -1,3 +1,16 @@
+"""
+This is the REST-API.
+We set the available methods here, make the other modules handle the requests and return responses.
+
+SPARQL-queries go to the Sparql_handler.
+
+The results of the queries go to the Idea_mapper, where the mapping happens.
+
+Source: https://blog.miguelgrinberg.com/post/designing-a-restful-api-with-python-and-flask
+
+author: Michael Tebbe (michael.tebbe@fu-berlin.de)
+"""
+
 #!flask/bin/python3
 from flask import Flask, make_response, request, jsonify
 from flask_cors import CORS
