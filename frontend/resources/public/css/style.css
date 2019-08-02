@@ -1,10 +1,41 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
 body {
-    background-color: #E5E5E5;
-    font-family: -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,"Noto Sans",sans-serif,"Apple Color Emoji","Segoe UI Emoji","Segoe UI Symbol","Noto Color Emoji";
+    background-color: #F0F2EF;
+    font-family: 'Inria Sans', sans-serif;
+}
+
+
+.navbarHeader {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+    padding: 0.8rem;
+    box-shadow: 0 .125rem .25rem rgba(0,0,0,.075);
+}
+
+.container {
+    max-width: 1140px;
+
+    padding-right: 15px;
+    padding-left: 15px;
+
+    margin-top: 2rem;
+    margin-right: auto;
+    margin-left: auto;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
 }
 
 .solution-map {
-    background-color: white;
+
 }
 
 .solution-map-container {
@@ -16,7 +47,7 @@ body {
 }
 
 .row {
-    display:flex;
+    display: flex;
     justify-content: center;
 }
 
@@ -41,13 +72,14 @@ body {
     position: absolute;
     background-color: white;
     max-width: 280px;
-
-    border: 1px solid rgba(0,0,0,.125);
+    padding: 0.5rem;
+    border: 1px solid rgba(0, 0, 0, .125);
     border-radius: .25rem;
     box-shadow: 2px 2px 2px 1px rgba(0, 0, 0, 0.2);
     /* Fade in tooltip - takes 1 second to go from 0% to 100% opac: */
     opacity: 0;
     transition: opacity 1s;
+
 }
 
 .idea-detail-container.shown {

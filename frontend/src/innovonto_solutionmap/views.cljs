@@ -4,11 +4,12 @@
             [innovonto-solutionmap.subs :as subs]
             [innovonto-solutionmap.config :as config]
             [innovonto-solutionmap.util :as util]
+            [reagent.core :as reagent]
             [re-frame.core :as re-frame]))
 
 
 (def display-config {
-                     :size-fn util/fixed-size
+                     :size-fn  util/fixed-size
                      :color-fn util/map-cluster-to-color
                      })
 
@@ -20,9 +21,10 @@
             :cy            (:y idea)
             :r             ((get display-config :size-fn) idea)
             :class         "idea-circle"
-            :style {:fill ((get display-config :color-fn) idea)}
+            :style         {:fill ((get display-config :color-fn) idea)}
             :on-mouse-over #(re-frame/dispatch [::events/show-tooltip (.-target %1) idea])
-            :on-mouse-out  #((re-frame/dispatch [::events/hide-tooltip]))}])
+            :on-click      #(re-frame/dispatch [::events/show-tooltip (.-target %1) idea])
+            :on-mouse-out  #(re-frame/dispatch [::events/hide-tooltip])}])
 
 
 (defn idea-card [idea]
@@ -63,10 +65,65 @@
      [view-box-control :width view-box]
      [view-box-control :height view-box]]))
 
+(defn handle-mousewheel [event]
+  (let [direction (Math/sign (.-deltaY event))]
+    (case direction
+      1 (re-frame/dispatch [::events/zoom-out])
+      -1 (re-frame/dispatch [::events/zoom-in])
+      "unknown direction!")))
+
+
+(def svg-navigation (reagent/atom {
+                                   :is-pointer-down false
+                                   :pointer-origin  {:x 0 :y 0}
+                                   }))
+
+(defn get-point-from-event [event]
+  {
+   :x (.-clientX event)
+   :y (.-clientY event)
+   })
+
+(defn handle-pointer-down [event]
+  (do
+    ;;(println (str "New pointer origin is: " (get-point-from-event event)))
+    (reset! svg-navigation
+            (-> @svg-navigation
+                (assoc :pointer-origin (get-point-from-event event))
+                (assoc :is-pointer-down true)))))
+
+(defn handle-pointer-up [event]
+  (swap! svg-navigation #(assoc %1 :is-pointer-down false)))
+
+(defn handle-pointer-leave [event]
+  true)
+
+;;TODO the amount the origin is moved depents on ???
+(defn handle-pointer-move [event]
+  (if (:is-pointer-down @svg-navigation)
+    (let [view-box @(re-frame/subscribe [::subs/view-box])
+          pointer-position (get-point-from-event event)
+          pointer-origin (:pointer-origin @svg-navigation)
+          new-origin {
+                      :x (- (:x view-box) (* (- (:x pointer-position) (:x pointer-origin)) 0.03))
+                      :y (- (:y view-box) (* (- (:y pointer-position) (:y pointer-origin)) 0.03))
+                      }]
+      (.preventDefault event)
+      ;;(println (str "moving pointer from: " pointer-origin " to " pointer-position))
+      ;;(println (str "new origin is: " new-origin))
+      (re-frame/dispatch [::events/reset-view-box-origin new-origin]))))
+
 (defn solution-map-svg-component []
   (let [viewbox @(re-frame/subscribe [::subs/view-box-string])
         ideas @(re-frame/subscribe [::subs/ideas])]
-    [:svg.solution-map {:view-box viewbox}
+    [:svg.solution-map {
+                        :view-box       viewbox
+                        :on-wheel       handle-mousewheel
+                        :on-mouse-down  handle-pointer-down
+                        :on-mouse-up    handle-pointer-up
+                        :on-mouse-leave handle-pointer-leave
+                        :on-mouse-move  handle-pointer-move
+                        }
      (map idea-circle ideas)]))
 
 (defn view-box-navigator []
@@ -85,12 +142,20 @@
      [:p.down {:on-click #(re-frame/dispatch [::events/pan-down])} "\u2B9F"]]]
    ])
 
+(defn header []
+  [:header.navbarHeader
+   [:div.logo [:h1 "Innovonto"]]
+   (if config/debug?
+     [debug-panel])
+   ])
+
 (defn solutionmap-app []
   (let [app-state @(re-frame/subscribe [::subs/app-state])]
     [:div
-     (if config/debug?
-       [debug-panel])
-     [tooltip (:tooltip app-state)]
-     [:div.solution-map-container
-      [solution-map-svg-component]
-      [view-box-navigator]]]))
+     [header]
+     [:div.container
+      [:h1 "Solution Map"]
+      [tooltip (:tooltip app-state)]
+      [:div.solution-map-container
+       [solution-map-svg-component]
+       [view-box-navigator]]]]))

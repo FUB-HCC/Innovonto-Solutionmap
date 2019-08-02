@@ -18,8 +18,8 @@
    :id            (get-in binding [:idea :value])
    :content       (get-in binding [:content :value])
    :cluster-label (js/parseInt (get-in binding [:cluster_label]))
-   :x             (get-in binding [:coordinates :x])
-   :y             (get-in binding [:coordinates :y])})
+   :x             (js/parseFloat (get-in binding [:coordinates :x]))
+   :y             (js/parseFloat (get-in binding [:coordinates :y]))})
 
 (defn sparql-response-to-ideas [response]
   (map to-idea (get-in response [:results :bindings])))
@@ -129,8 +129,8 @@
   (fn [db _]
     (let [current-view-box (:view-box db)]
       (assoc db :view-box {
-                           :x      (:x current-view-box)
-                           :y      (:y current-view-box)
+                           :x      (+ (:x current-view-box) (* (:width current-view-box) 0.1))
+                           :y      (+ (:y current-view-box) (* (:height current-view-box) 0.1))
                            :width  (* (:width current-view-box) 0.8)
                            :height (* (:height current-view-box) 0.8)}))))
 
@@ -139,8 +139,8 @@
   (fn [db _]
     (let [current-view-box (:view-box db)]
       (assoc db :view-box {
-                           :x      (:x current-view-box)
-                           :y      (:y current-view-box)
+                           :x      (- (:x current-view-box) (* (:width current-view-box) 0.1))
+                           :y      (- (:y current-view-box) (* (:height current-view-box) 0.1))
                            :width  (* (:width current-view-box) 1.2)
                            :height (* (:height current-view-box) 1.2)}))))
 
@@ -167,3 +167,10 @@
   (fn [db _]
     (let [current-view-box (:view-box db)]
       (assoc-in db [:view-box :x] (+ (:x current-view-box) (* (:width current-view-box) 0.2))))))
+
+(re-frame/reg-event-db
+  ::reset-view-box-origin
+  (fn [db [_ new-origin]]
+    (-> db
+        (assoc-in [:view-box :x] (:x new-origin))
+        (assoc-in [:view-box :y] (:y new-origin)))))
