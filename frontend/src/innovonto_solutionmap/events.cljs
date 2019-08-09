@@ -89,6 +89,11 @@
     (update-in db [:tooltip] assoc :state "hidden")))
 
 (re-frame/reg-event-db
+  ::switch-backend
+  (fn [db [_ new-backend]]
+    (assoc db :backend new-backend)))
+
+(re-frame/reg-event-db
   ::use-mock-backend
   (fn [db _]
     (assoc db :backend "mock")))

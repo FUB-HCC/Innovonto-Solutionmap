@@ -148,22 +148,35 @@
 (defn map-config-panel []
   [:span "TODO"])
 
+(defn option-component [option]
+  [:option {:key   option
+            :value option} (str option)])
+
+(defn select-component [current-option available-options dispatch-event]
+  [:select {:default-value current-option
+            :on-change     #(re-frame/dispatch [dispatch-event (.-value (.-target %1))])}
+   (map option-component available-options)])
+
 (defn data-config-panel []
   [:div
    [:div.config-row
     [:span "Endpoint:"]
-    [:select {:default-value "local"}
-     [:option "Mock"]
-     [:option "Local"]]]
+    [select-component @(re-frame/subscribe [::subs/backend]) ["mock" "live"] ::events/switch-backend]]
 
    [:div.config-row
     [:span "Challenge:"]
     [:select
-     [:option {:value "foo"} "TCO"]]]
-
+     [:option {:value "TCO"} "TCO"]]]
    [:div.config-row
-    [:p "Alogrithms:"]
-    [:p "TODO"]]
+    [:p "Algorithm:"]
+    [:div
+     [:p "Embedding:"]
+     [select-component "USE" ["USE" "RANDOM"] ::events/set-embedding-algorithm]
+     [:p "Reduction: "]
+     [select-component "t-sne" ["t-sne" "PCA"] ::events/set-reduction-algorithm]
+     [:p "Clustering: "]
+     [select-component "k-means" ["k-means" "TODO-1" "TODO-2"] ::events/set-clustering-algorithm]]]
+   [:hr]
    [:div.config-row
     [:button {:on-click #(re-frame/dispatch [::events/load-data])} "Reload!"]]])
 
