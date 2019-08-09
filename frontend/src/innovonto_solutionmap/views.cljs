@@ -75,22 +75,24 @@
 
 (def svg-navigation (reagent/atom {
                                    :is-pointer-down false
-                                   :pointer-origin  {:x 0 :y 0}
+                                   :pointer-origin  nil
                                    }))
 
-(defn get-point-from-event [event]
-  {
-   :x (.-clientX event)
-   :y (.-clientY event)
-   })
+(defn create-js-point [event]
+  (let [svg (.getElementById js/document "solution-map")
+        point (.createSVGPoint svg)
+        inverted-svg-matrix (.inverse (.getScreenCTM svg))]
+    (set! (.-x point) (.-clientX event))
+    (set! (.-y point) (.-clientY event))
+    (.matrixTransform point inverted-svg-matrix)))
 
 (defn handle-pointer-down [event]
-  (do
-    ;;(println (str "New pointer origin is: " (get-point-from-event event)))
+  (let [point (create-js-point event)]
     (reset! svg-navigation
             (-> @svg-navigation
-                (assoc :pointer-origin (get-point-from-event event))
-                (assoc :is-pointer-down true)))))
+                (assoc :is-pointer-down true)
+                (assoc :pointer-origin point)
+                ))))
 
 (defn handle-pointer-up [event]
   (swap! svg-navigation #(assoc %1 :is-pointer-down false)))
@@ -98,19 +100,15 @@
 (defn handle-pointer-leave [event]
   true)
 
-(defn calculate-ratio-from [view-box-width svg-element]
-  (/ view-box-width (.-width (.getBoundingClientRect svg-element))))
-
 ;;TODO the amount the origin is moved depents on ???
 (defn handle-pointer-move [event]
   (if (:is-pointer-down @svg-navigation)
     (let [view-box @(re-frame/subscribe [::subs/view-box])
-          pointer-position (get-point-from-event event)
+          pointer-position (create-js-point event)
           pointer-origin (:pointer-origin @svg-navigation)
-          ratio (calculate-ratio-from (:width view-box) (.-target event))
           new-origin {
-                      :x (- (:x view-box) (* (- (:x pointer-position) (:x pointer-origin)) ratio))
-                      :y (- (:y view-box) (* (- (:y pointer-position) (:y pointer-origin)) ratio))
+                      :x (- (:x view-box) (- (.-x pointer-position) (.-x pointer-origin)))
+                      :y (- (:y view-box) (- (.-y pointer-position) (.-y pointer-origin)))
                       }]
       (.preventDefault event)
       ;;(println (str "moving pointer from: " pointer-origin " to " pointer-position))
@@ -121,14 +119,14 @@
   (let [viewbox @(re-frame/subscribe [::subs/view-box-string])
         ideas @(re-frame/subscribe [::subs/ideas])]
     [:div.solution-map-container
-     [:svg.solution-map {
-                         :view-box       viewbox
-                         :on-wheel       handle-mousewheel
-                         :on-mouse-down  handle-pointer-down
-                         :on-mouse-up    handle-pointer-up
-                         :on-mouse-leave handle-pointer-leave
-                         :on-mouse-move  handle-pointer-move
-                         }
+     [:svg#solution-map.solution-map {
+                                      :view-box       viewbox
+                                      :on-wheel       handle-mousewheel
+                                      :on-mouse-down  handle-pointer-down
+                                      :on-mouse-up    handle-pointer-up
+                                      :on-mouse-leave handle-pointer-leave
+                                      :on-mouse-move  handle-pointer-move
+                                      }
       (map idea-circle ideas)]]))
 
 (defn view-box-navigator []
@@ -154,9 +152,9 @@
   [:div
    [:div.config-row
     [:span "Endpoint:"]
-    [:select
-     [:option {:value "foo" :selected true} "Mock"]
-     [:option {:value "local" :selected false} "Local"]]]
+    [:select {:default-value "local"}
+     [:option "Mock"]
+     [:option "Local"]]]
 
    [:div.config-row
     [:span "Challenge:"]
