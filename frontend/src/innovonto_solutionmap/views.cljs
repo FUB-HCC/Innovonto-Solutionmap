@@ -98,15 +98,19 @@
 (defn handle-pointer-leave [event]
   true)
 
+(defn calculate-ratio-from [view-box-width svg-element]
+  (/ view-box-width (.-width (.getBoundingClientRect svg-element))))
+
 ;;TODO the amount the origin is moved depents on ???
 (defn handle-pointer-move [event]
   (if (:is-pointer-down @svg-navigation)
     (let [view-box @(re-frame/subscribe [::subs/view-box])
           pointer-position (get-point-from-event event)
           pointer-origin (:pointer-origin @svg-navigation)
+          ratio (calculate-ratio-from (:width view-box) (.-target event))
           new-origin {
-                      :x (- (:x view-box) (* (- (:x pointer-position) (:x pointer-origin)) 0.03))
-                      :y (- (:y view-box) (* (- (:y pointer-position) (:y pointer-origin)) 0.03))
+                      :x (- (:x view-box) (* (- (:x pointer-position) (:x pointer-origin)) ratio))
+                      :y (- (:y view-box) (* (- (:y pointer-position) (:y pointer-origin)) ratio))
                       }]
       (.preventDefault event)
       ;;(println (str "moving pointer from: " pointer-origin " to " pointer-position))

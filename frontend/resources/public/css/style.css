@@ -104,7 +104,7 @@ svg {
 .toolbox {
     margin-left: 1rem;
     min-width: 350px;
-    background-color: lightgray;
+    background-color: #BCC0B9;
     border-radius: .25rem;
 }
 
@@ -121,7 +121,7 @@ svg {
 }
 
 .toolbox-header-item.active {
-    background-color: gray;
+    background-color: #B8E16D;
 }
 
 .toolbox-body {
