@@ -29,3 +29,8 @@
   ::ideas
   (fn [db _]
     (:ideas db)))
+
+(re-frame/reg-sub
+  ::active-toolbox-panel
+  (fn [db _]
+    (get-in db [:toolbox :active-panel])))

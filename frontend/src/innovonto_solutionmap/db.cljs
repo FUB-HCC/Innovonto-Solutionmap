@@ -18,5 +18,8 @@
                            :content {
                                      :image       "img/icona-crop-u12770.jpg"
                                      :title       "Rescue Window"
-                                     :description "Lorem Ipsum dolor sit amet, consetetur ..."}}})
+                                     :description "Lorem Ipsum dolor sit amet, consetetur ..."}}
+                 :toolbox {
+                           :active-panel :data
+                           }})
 

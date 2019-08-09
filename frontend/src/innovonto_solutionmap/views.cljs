@@ -143,16 +143,50 @@
      [:p.down {:on-click #(re-frame/dispatch [::events/pan-down])} "↓"]]]
    ])
 
+(defn map-config-panel []
+  [:span "TODO"])
+
+(defn data-config-panel []
+  [:div
+   [:div.config-row
+    [:span "Endpoint:"]
+    [:select
+     [:option {:value "foo" :selected true} "Mock"]
+     [:option {:value "local" :selected false} "Local"]]]
+
+   [:div.config-row
+    [:span "Challenge:"]
+    [:select
+     [:option {:value "foo"} "TCO"]]]
+
+   [:div.config-row
+    [:p "Alogrithms:"]
+    [:p "TODO"]]
+   [:div.config-row
+    [:button {:on-click #(re-frame/dispatch [::events/load-data])} "Reload!"]]])
+
+(defn is-active? [current-active panel]
+  (if (= current-active panel)
+    "active"
+    ""))
+
 (defn toolbox []
-  [:div.toolbox
-   [:div.toolbox-header
-    [:p "Nav"]]
-   [:div.toolbox-body
-    [view-box-navigator]]])
+  (let [toolbox-panel (re-frame/subscribe [::subs/active-toolbox-panel])]
+    [:div.toolbox
+     [:div.toolbox-header
+      [:div.toolbox-header-item {:class (is-active? @toolbox-panel :data) :on-click #(re-frame/dispatch [::events/switch-toolbox-panel :data])} [:span "Data"]]
+      [:div.toolbox-header-item {:class (is-active? @toolbox-panel :nav) :on-click #(re-frame/dispatch [::events/switch-toolbox-panel :nav])} [:span "Nav"]]
+      [:div.toolbox-header-item {:class (is-active? @toolbox-panel :map-config) :on-click #(re-frame/dispatch [::events/switch-toolbox-panel :map-config])} [:span "Map-Config"]]]
+     [:div.toolbox-body
+      (case @toolbox-panel
+        :data [data-config-panel]
+        :nav [view-box-navigator]
+        :map-config [map-config-panel]
+        [:span "Unrecognized active toolbox panel"])]]))
 
 (defn header []
   [:header.navbarHeader
-   [:div.logo [:h1 "Innovonto"]]
+   [:div.logo [:h1 "Innovonto - Solution Map"]]
    (if config/debug?
      [debug-panel])
    ])
@@ -162,7 +196,6 @@
     [:div
      [header]
      [:div.container
-      [:h1 "Solution Map"]
       [tooltip (:tooltip app-state)]
       [:div.row
        [solution-map-svg-component]

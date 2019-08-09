@@ -174,3 +174,9 @@
     (-> db
         (assoc-in [:view-box :x] (:x new-origin))
         (assoc-in [:view-box :y] (:y new-origin)))))
+
+;;TOOLBOX
+(re-frame/reg-event-db
+  ::switch-toolbox-panel
+  (fn [db [_ panel]]
+    (assoc-in db [:toolbox :active-panel] panel)))
