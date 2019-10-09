@@ -5,7 +5,7 @@ author: Michael Tebbe (michael.tebbe@fu-berlin.de)
 """
 
 from sklearn.decomposition import PCA
-from sklearn.manifold import TSNE
+from sklearn.manifold import TSNE, MDS
 from sklearn.preprocessing import normalize
 
 import numpy as np
@@ -36,11 +36,26 @@ class Dimension_reducer():
         """
         Reduce dimensions with t-SNE
         """
-        tsne = TSNE(n_components=2, verbose=1, perplexity=30, n_iter=500)
+        tsne = TSNE(n_components=2, verbose=1, perplexity=20, n_iter=500, angle=0.1 )
         tsne_result = tsne.fit_transform(similarity_matrix)
+        
+        #TODO: Throw this out, this is only done, because frontend is not ready
         tsne_result =np.divide(tsne_result,4)
+
         similarity_matrix['x'] = tsne_result[:,0]
         similarity_matrix['y'] = tsne_result[:,1]
+        
+        return similarity_matrix[['x','y']]
+
+    def mds(self,similarity_matrix):
+        """
+        Reduce dimensions with t-SNE
+        """
+        mds = MDS(n_components=2, metric = False)
+        result = mds.fit_transform(similarity_matrix)
+        result =result * 5
+        similarity_matrix['x'] = result[:,0]
+        similarity_matrix['y'] = result[:,1]
         
         return similarity_matrix[['x','y']]
 

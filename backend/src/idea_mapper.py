@@ -2,8 +2,8 @@
 The Idea_mapper handles the logic of the application.
 The workflow is:
 1. create JSON Object from query response
-2. generate similarity matrix with specified algorithm (this is passed to Idea_embedder)
-3. perform dimensionality reduction on similarity matrix to get coordinates (this is passed to Dimension_reducer)
+2. generate vector embedding (optionally similarity matrix) with specified algorithm (happens in Idea_embedder)
+3. perform dimensionality reduction on vectors to get coordinates (happens in Dimension_reducer)
 4. create a JSON-object, where each idea has coordinates
 
 
@@ -17,8 +17,10 @@ from random import random
 import numpy as np
 from dimension_reducer import Dimension_reducer
 from idea_embedder import Idea_embedder
+from idea_clusterer import Idea_clusterer
 class Idea_mapper():
     dimension_reducer = Dimension_reducer()
+    idea_clusterer = Idea_clusterer()
     idea_embedder = Idea_embedder()
     def map_ideas(self,query_response, similarity_algorithm='USE',dim_reduction_algorithm='PCA'):
         #create JSON Object from query response
@@ -26,7 +28,7 @@ class Idea_mapper():
         #print(ideas['results']['bindings'][0])
         
         #generate similarity matrix with specified algorithm
-        similarity_matrix, labels = self._create_similarity_matrix(ideas,similarity_algorithm)
+        similarity_matrix, labels = self._create_embeddings(ideas,similarity_algorithm)
         
         #perform dimensionality reduction on similarity matrix to get coordinates
         coordinates = self._reduce_dimensions(similarity_matrix, dim_reduction_algorithm)
@@ -39,7 +41,7 @@ class Idea_mapper():
 
 
 
-    def _create_similarity_matrix(self,ideas,similarity_algorithm):
+    def _create_embeddings(self,ideas,similarity_algorithm):
         #matrix dimensions are alway equal to the number of ideas
         matrix_dimension = len(ideas['results']['bindings'])
 
@@ -62,13 +64,24 @@ class Idea_mapper():
             
         elif similarity_algorithm is 'USE':
             #create similarity matrix from USE embeddings
-            similarity_matrix_np = self.idea_embedder.USE(ideas)
+            similarity_matrix_np = self.idea_embedder.USE(idea_list)
         
         
         columns_names = ['dim_'+str(i) for i in range(similarity_matrix_np.shape[1])]
         similarity_matrix = pd.DataFrame(similarity_matrix_np, columns = columns_names)
-        labels = self.idea_embedder.cluster_kmeans(similarity_matrix_np)
         
+        #TODO: Put this inside of its own function
+        cluster_method ='optics'
+        if cluster_method is 'kmeans':
+            labels = self.idea_clusterer.cluster_kmeans(similarity_matrix_np)
+        elif cluster_method is 'optics':
+            labels = self.idea_clusterer.cluster_optics(similarity_matrix_np)
+        elif cluster_method is 'spectral':
+            labels = self.idea_clusterer.cluster_spectral(similarity_matrix_np)
+        elif cluster_method is 'agglomerative':
+            labels = self.idea_clusterer.cluster_agglomerative(similarity_matrix_np)
+            
+        print(labels)
 
         return similarity_matrix, labels
     
@@ -78,10 +91,12 @@ class Idea_mapper():
         coordinates = similarity_matrix
         
         if dim_reduction_algorithm is 'PCA':
-            self.dimension_reducer.tsne(similarity_matrix)
+            self.dimension_reducer.mds(similarity_matrix)
 
         elif dim_reduction_algorithm is 'TSNE':
             self.dimension_reducer.tsne(similarity_matrix)
+        elif dim_reduction_algorithm is 'MDS':
+            self.dimension_reducer.mds(similarity_matrix)
 
         elif dim_reduction_algorithm is 'cut':
             self.dimension_reducer.cut(similarity_matrix)

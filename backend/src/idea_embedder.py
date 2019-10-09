@@ -9,7 +9,8 @@ author: Michael Tebbe (michael.tebbe@fu-berlin.de)
 
 import tensorflow as tf
 import tensorflow_hub as hub
-from sklearn.cluster import KMeans
+from sklearn.cluster import KMeans, OPTICS, cluster_optics_dbscan
+from sklearn.decomposition import PCA
 import numpy as np
 import os
 import pandas as pd
@@ -17,14 +18,13 @@ import re
 
 
 class Idea_embedder():
-    def USE(self, ideas):
+    def USE(self, ideas, distance_metric = 'none'):
         """
         Source: https://colab.research.google.com/github/tensorflow/hub/blob/master/examples/colab/semantic_similarity_with_tf_hub_universal_encoder.ipynb#scrollTo=h1FFCTKm7ba4
         """
-        idea_list=[]
+        idea_list=ideas
+        print (idea_list)
         #update code to do this only once at the beginning and once at the end!
-        for i, idea in enumerate(ideas['results']['bindings']):
-            idea_list.append(idea['content']['value'])
             
         #currently uses DAN, switch @param to use transformer 
         module_url = "https://tfhub.dev/google/universal-sentence-encoder/2" #@param ["https://tfhub.dev/google/universal-sentence-encoder/2", "https://tfhub.dev/google/universal-sentence-encoder-large/3"]
@@ -37,32 +37,37 @@ class Idea_embedder():
             session.run([tf.global_variables_initializer(), tf.tables_initializer()])
             message_embeddings = session.run(embed(idea_list))
 
-
-
-        #return for now:
-        matrix_dimension= len(ideas['results']['bindings'])
-        similarity_matrix = self._calculate_similarity_matrix(message_embeddings)
+        ##pre-reduce dimensions
+        #pca = PCA(n_components=100)
+        #message_embeddings = pca.fit_transform(message_embeddings)
+        #print('Explained variation per principal component: {}'.format(pca.explained_variance_ratio_))
+        similarity_matrix = self._calculate_similarity_matrix(message_embeddings, 'none')
         return similarity_matrix
 
-    def _calculate_similarity_matrix(self, vectors):
-        algoritm = 'none'
+    def _calculate_similarity_matrix(self, vectors, distance_metric = 'none'):
         similarity_matrix = vectors
-        if algoritm is 'none':
+        if distance_metric is 'none':
             similarity_matrix = vectors
-        elif algoritm is 'inner':
+        elif distance_metric is 'inner':
             similarity_matrix = np.inner(vectors, vectors)
-        elif algoritm is 'multi_inner':
+        elif distance_metric is 'cosine':
             inner = np.inner(vectors, vectors)
-            #inner = np.inner(inner,inner)
+            inner = inner / np.linalg.norm(inner)
+            similarity_matrix = inner
+        elif distance_metric is 'multi_inner':
+            inner = np.inner(vectors, vectors)
+            #inner = inner / np.linalg.norm(inner)
+            inner = np.inner(vectors, vectors)
+            #inner = inner / np.linalg.norm(inner)
+            inner = np.inner(vectors, vectors)
+            #inner = inner / np.linalg.norm(inner)
+            inner = np.inner(vectors, vectors)
+            inner = inner / np.linalg.norm(inner)
             
             similarity_matrix = inner
         
         return similarity_matrix
 
-    def cluster_kmeans(self, similarity_matrix):
-        kmeans = KMeans(n_clusters=10, random_state=0).fit(similarity_matrix)
-        labels = kmeans.labels_
-                
-        return labels
+    
 
 
