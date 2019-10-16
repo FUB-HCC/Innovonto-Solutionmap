@@ -65,7 +65,7 @@ def get_map():
 
   cluster_method='kmeans'
   if hasattr(request.args, 'cluster_method'):
-    similarity_algorithm = request.args['cluster_method']
+    cluster_method = request.args['cluster_method']
    
   #,dim_reduction_algorithm='PCA'request.args['query']
   mapping_result = im.map_ideas(query_response = query_response, similarity_algorithm = similarity_algorithm, dim_reduction_algorithm = dim_reduction_algorithm, cluster_method = cluster_method)
