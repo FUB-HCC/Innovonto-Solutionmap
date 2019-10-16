@@ -22,6 +22,7 @@ class Idea_embedder():
         """
         Source: https://colab.research.google.com/github/tensorflow/hub/blob/master/examples/colab/semantic_similarity_with_tf_hub_universal_encoder.ipynb#scrollTo=h1FFCTKm7ba4
         """
+        print('Embedding with USE')
         idea_list=ideas
         
         #update code to do this only once at the beginning and once at the end!
@@ -34,14 +35,11 @@ class Idea_embedder():
 
 
         with tf.Session() as session:
+            print('running session')
             session.run([tf.global_variables_initializer(), tf.tables_initializer()])
             message_embeddings = session.run(embed(idea_list))
 
-        ##pre-reduce dimensions
-        #pca = PCA(n_components=100)
-        #message_embeddings = pca.fit_transform(message_embeddings)
-        #print('Explained variation per principal component: {}'.format(pca.explained_variance_ratio_))
-        similarity_matrix = self._calculate_similarity_matrix(message_embeddings, 'none')
+        similarity_matrix = self._calculate_similarity_matrix(message_embeddings, 'multi_inner')
         return similarity_matrix
 
     def _calculate_similarity_matrix(self, vectors, distance_metric = 'none'):

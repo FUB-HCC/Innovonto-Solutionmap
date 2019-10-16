@@ -35,7 +35,9 @@ class Idea_mapper():
         
         #create a JSON-object, where each idea has coordinates
         ideas_with_coordinates = self._attach_coordinates_to_ideas(ideas, coordinates, labels)
-                
+        
+        #print(json.dumps(ideas_with_coordinates, indent=4, sort_keys=True))
+
         return ideas_with_coordinates
         
 
@@ -59,9 +61,6 @@ class Idea_mapper():
         if similarity_algorithm is 'random':
             #pass randomly initialized similarity matrix
             pass
-            
-
-            
         elif similarity_algorithm is 'USE':
             #create similarity matrix from USE embeddings
             similarity_matrix_np = self.idea_embedder.USE(idea_list)
@@ -72,7 +71,7 @@ class Idea_mapper():
         
         #TODO: Put this inside of its own function
         if cluster_method is 'kmeans':
-            self.dimension_reducer.pca(similarity_matrix)
+            #self.dimension_reducer.pca(similarity_matrix)
             labels = self.idea_clusterer.cluster_kmeans(similarity_matrix_np)
         elif cluster_method is 'optics':
             labels = self.idea_clusterer.cluster_optics(similarity_matrix_np)
@@ -91,18 +90,17 @@ class Idea_mapper():
         coordinates = similarity_matrix
         
         if dim_reduction_algorithm is 'PCA':
-            self.dimension_reducer.pca(similarity_matrix)
+            coordinates = self.dimension_reducer.tsne(similarity_matrix)
 
         elif dim_reduction_algorithm is 'TSNE':
-            self.dimension_reducer.tsne(similarity_matrix)
+            coordinates = self.dimension_reducer.tsne(similarity_matrix)
         elif dim_reduction_algorithm is 'MDS':
-            self.dimension_reducer.mds(similarity_matrix)
+            coordinates = self.dimension_reducer.mds(similarity_matrix)
 
         elif dim_reduction_algorithm is 'cut':
-            self.dimension_reducer.cut(similarity_matrix)
+            coordinates = self.dimension_reducer.cut(similarity_matrix)
             #coordinates = similarity_matrix['id']
         
-         
         return coordinates[['x','y']]
     
 

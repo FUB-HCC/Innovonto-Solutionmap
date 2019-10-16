@@ -17,14 +17,17 @@ import re
 
 class Idea_clusterer():
     def cluster_kmeans(self, similarity_matrix):
-        pca = PCA(n_components=50)
-        similarity_matrix = pca.fit_transform(similarity_matrix)
-        kmeans = KMeans(n_clusters=50, random_state=0).fit(similarity_matrix)
+        print('Clustering with k-Means.')
+
+        #pca = PCA(n_components=10)
+        #similarity_matrix = pca.fit_transform(similarity_matrix)
+        kmeans = KMeans(n_clusters=20, random_state=0).fit(similarity_matrix)
         labels = kmeans.labels_
                 
         return labels
 
     def cluster_optics(self, similarity_matrix):
+        print('Clustering with optics.')
         #TODO: Fix
         clust = OPTICS(min_samples=2, xi=0.005)#, min_cluster_size=.05)
         clust.fit(similarity_matrix)
@@ -39,6 +42,7 @@ class Idea_clusterer():
         return labels
     
     def cluster_spectral(self, similarity_matrix):
+        print('Clustering with spectral clustering')
         clust = SpectralClustering(n_clusters=60,
         assign_labels="discretize",
         random_state=0)
@@ -47,6 +51,7 @@ class Idea_clusterer():
         return labels
 
     def cluster_list(self, similarity_matrix, label_list):
+        print('Clustering based on a list.')
         #TODO: The idea is to return labels (which result in colors) based on a list, e.g. a list of authors of ideas
         # insert the list to the set 
         list_set = set(label_list) 
@@ -58,6 +63,7 @@ class Idea_clusterer():
         labels = np.empty(len(label_list))
     
     def cluster_agglomerative(self, similarity_matrix):
+        print('Clustering with agglomerative clustering.')
         clust = AgglomerativeClustering(n_clusters=60)
         clust.fit(similarity_matrix)
         labels = clust.labels_
