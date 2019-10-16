@@ -22,13 +22,13 @@ class Idea_mapper():
     dimension_reducer = Dimension_reducer()
     idea_clusterer = Idea_clusterer()
     idea_embedder = Idea_embedder()
-    def map_ideas(self,query_response, similarity_algorithm='USE',dim_reduction_algorithm='PCA'):
+    def map_ideas(self,query_response, similarity_algorithm='USE',dim_reduction_algorithm='PCA', cluster_method = 'kmeans'):
         #create JSON Object from query response
         ideas = json.loads(query_response) #pd.read_json(query_response)
         #print(ideas['results']['bindings'][0])
         
         #generate similarity matrix with specified algorithm
-        similarity_matrix, labels = self._create_embeddings(ideas,similarity_algorithm)
+        similarity_matrix, labels = self._create_embeddings(ideas,similarity_algorithm, cluster_method)
         
         #perform dimensionality reduction on similarity matrix to get coordinates
         coordinates = self._reduce_dimensions(similarity_matrix, dim_reduction_algorithm)
@@ -41,7 +41,7 @@ class Idea_mapper():
 
 
 
-    def _create_embeddings(self,ideas,similarity_algorithm):
+    def _create_embeddings(self,ideas,similarity_algorithm, cluster_method):
         #matrix dimensions are alway equal to the number of ideas
         matrix_dimension = len(ideas['results']['bindings'])
 
@@ -71,8 +71,8 @@ class Idea_mapper():
         similarity_matrix = pd.DataFrame(similarity_matrix_np, columns = columns_names)
         
         #TODO: Put this inside of its own function
-        cluster_method ='optics'
         if cluster_method is 'kmeans':
+            self.dimension_reducer.pca(similarity_matrix)
             labels = self.idea_clusterer.cluster_kmeans(similarity_matrix_np)
         elif cluster_method is 'optics':
             labels = self.idea_clusterer.cluster_optics(similarity_matrix_np)
@@ -81,7 +81,7 @@ class Idea_mapper():
         elif cluster_method is 'agglomerative':
             labels = self.idea_clusterer.cluster_agglomerative(similarity_matrix_np)
             
-        print(labels)
+        #print(labels)
 
         return similarity_matrix, labels
     
@@ -91,7 +91,7 @@ class Idea_mapper():
         coordinates = similarity_matrix
         
         if dim_reduction_algorithm is 'PCA':
-            self.dimension_reducer.mds(similarity_matrix)
+            self.dimension_reducer.pca(similarity_matrix)
 
         elif dim_reduction_algorithm is 'TSNE':
             self.dimension_reducer.tsne(similarity_matrix)

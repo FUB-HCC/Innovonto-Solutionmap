@@ -23,7 +23,7 @@ class Idea_embedder():
         Source: https://colab.research.google.com/github/tensorflow/hub/blob/master/examples/colab/semantic_similarity_with_tf_hub_universal_encoder.ipynb#scrollTo=h1FFCTKm7ba4
         """
         idea_list=ideas
-        print (idea_list)
+        
         #update code to do this only once at the beginning and once at the end!
             
         #currently uses DAN, switch @param to use transformer 

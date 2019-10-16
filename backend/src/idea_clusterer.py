@@ -7,6 +7,7 @@ author: Michael Tebbe (michael.tebbe@fu-berlin.de)
 
 import tensorflow as tf
 import tensorflow_hub as hub
+from sklearn.decomposition import PCA
 from sklearn.cluster import KMeans, OPTICS, cluster_optics_dbscan, SpectralClustering, AgglomerativeClustering
 import numpy as np
 import os
@@ -16,6 +17,8 @@ import re
 
 class Idea_clusterer():
     def cluster_kmeans(self, similarity_matrix):
+        pca = PCA(n_components=50)
+        similarity_matrix = pca.fit_transform(similarity_matrix)
         kmeans = KMeans(n_clusters=50, random_state=0).fit(similarity_matrix)
         labels = kmeans.labels_
                 
@@ -50,7 +53,7 @@ class Idea_clusterer():
         # convert the set to the list 
         unique_list = (list(list_set)) 
         for x in unique_list:
-            print (x)
+            pass
         
         labels = np.empty(len(label_list))
     

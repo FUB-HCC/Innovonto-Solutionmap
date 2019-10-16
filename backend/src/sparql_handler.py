@@ -11,7 +11,8 @@ WHERE {
 ORDER BY ?idea
 """
 
-sparql = SPARQLWrapper("https://innovonto-core.imp.fu-berlin.de/exemplars/query")
+#sparql = SPARQLWrapper("https://innovonto-core.imp.fu-berlin.de/exemplars/query")
+sparql = SPARQLWrapper("https://innovonto-core.imp.fu-berlin.de/management/ac2/query")
 sparql.setReturnFormat(JSON)
 
 class Sparql_handler():
