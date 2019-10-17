@@ -27,13 +27,23 @@ class Idea_mapper():
         ideas = json.loads(query_response) #pd.read_json(query_response)
         #print(ideas['results']['bindings'][0])
         
-        #generate similarity matrix with specified algorithm
-        similarity_matrix, labels = self._create_embeddings(ideas,similarity_algorithm, cluster_method)
+        #generate embedding matrix with specified algorithm
+        retreat = True
+        if(retreat):
+            print('Reading embeddings from file.')
+            similarity_matrix, similarity_matrix_np = self._read_embeddings_from_file()
+        else:
+            similarity_matrix, similarity_matrix_np = self._create_embeddings(ideas,similarity_algorithm)
+            self._write_embeddings_to_file(similarity_matrix, similarity_matrix_np)
+
         
+        #perform clustering on the embeddings
+        labels = self.create_cluster_labels(similarity_matrix_np, cluster_method)
+
         #perform dimensionality reduction on similarity matrix to get coordinates
         coordinates = self._reduce_dimensions(similarity_matrix, dim_reduction_algorithm)
         
-        #create a JSON-object, where each idea has coordinates
+        #create a JSON-object, where each idea has coordinates and labels
         ideas_with_coordinates = self._attach_coordinates_to_ideas(ideas, coordinates, labels)
         
         #print(json.dumps(ideas_with_coordinates, indent=4, sort_keys=True))
@@ -43,7 +53,7 @@ class Idea_mapper():
 
 
 
-    def _create_embeddings(self,ideas,similarity_algorithm, cluster_method):
+    def _create_embeddings(self,ideas,similarity_algorithm):
         #matrix dimensions are alway equal to the number of ideas
         matrix_dimension = len(ideas['results']['bindings'])
 
@@ -64,12 +74,13 @@ class Idea_mapper():
         elif similarity_algorithm is 'USE':
             #create similarity matrix from USE embeddings
             similarity_matrix_np = self.idea_embedder.USE(idea_list)
-        
-        
         columns_names = ['dim_'+str(i) for i in range(similarity_matrix_np.shape[1])]
         similarity_matrix = pd.DataFrame(similarity_matrix_np, columns = columns_names)
-        
-        #TODO: Put this inside of its own function
+
+        return similarity_matrix, similarity_matrix_np
+    
+    def create_cluster_labels(self, similarity_matrix_np, cluster_method):
+        labels = np.zeros(similarity_matrix_np.shape[0])
         if cluster_method is 'kmeans':
             #self.dimension_reducer.pca(similarity_matrix)
             labels = self.idea_clusterer.cluster_kmeans(similarity_matrix_np)
@@ -79,10 +90,9 @@ class Idea_mapper():
             labels = self.idea_clusterer.cluster_spectral(similarity_matrix_np)
         elif cluster_method is 'agglomerative':
             labels = self.idea_clusterer.cluster_agglomerative(similarity_matrix_np)
-            
-        #print(labels)
+        
+        return labels
 
-        return similarity_matrix, labels
     
 
 
@@ -113,3 +123,15 @@ class Idea_mapper():
             idea['coordinates']['y'] = str(coordinates.at[i,'y'])
             idea['cluster_label'] = str(labels[i])
         return ideas
+
+    def _read_embeddings_from_file(self):
+        #similarity_matrix_np_file = open("./src/embeddings/similarity_matrix_np.json","r")
+        #with similarity_matrix_np_file as infile:
+        #    json.dump(similarity_matrix, outfile)
+        similarity_matrix =pd.read_json("./src/embeddings/similarity_matrix.json")
+        similarity_matrix_np = pd.read_json("./src/embeddings/similarity_matrix_np.json").to_numpy()
+        return similarity_matrix, similarity_matrix_np
+    
+    def _write_embeddings_to_file(self, similarity_matrix, similarity_matrix_np):
+        pd.DataFrame(similarity_matrix_np).to_json("./src/embeddings/similarity_matrix_np.json")
+        similarity_matrix.to_json("./src/embeddings/similarity_matrix.json")

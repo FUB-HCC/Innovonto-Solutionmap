@@ -51,7 +51,7 @@ def get_query_response():
 #Example: http://localhost:5000/solutionmap/api/v0.1/get_map?query=PREFIX%20gi2mo%3A%3Chttp%3A%2F%2Fpurl.org%2Fgi2mo%2Fns%23%3E%0A%0ASELECT%20%3Fidea%20%3Fcontent%0AWHERE%20%7B%0A%20%20%3Fidea%20a%20gi2mo%3AIdea.%0A%20%20%3Fidea%20gi2mo%3Acontent%20%3Fcontent.%0A%7D%0AORDER%20BY%20%3Fidea&similarity_algorithm=USE&dim_reduction_algorithm=PCA
 @app.route('/solutionmap/api/v0.1/get_map', methods=['Get'])
 def get_map():
-  app.logger.info('Create Map of query:\n{}'.format(request.args['query']))
+  #app.logger.info('Create Map of query:\n{}'.format(request.args['query']))
 
   query_response = jsonify(sh.return_response(request.args['query'])).get_data('results')
   
