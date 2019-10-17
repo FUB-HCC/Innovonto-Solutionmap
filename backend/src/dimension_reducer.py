@@ -43,7 +43,7 @@ class Dimension_reducer():
 
         print('Reducing dimensions with T-SNE')
 
-        tsne = TSNE(n_components=2, verbose=1, perplexity=50, n_iter=250, angle=0.1 )
+        tsne = TSNE(n_components=2, verbose=1, perplexity=70, n_iter=5000, angle=0.1 )
         tsne_result = tsne.fit_transform(similarity_matrix)
         
         #TODO: Throw this out, this is only done, because frontend is not ready

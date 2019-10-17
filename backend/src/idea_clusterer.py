@@ -1,5 +1,5 @@
 """
-The Idea_clusterer has different algoritms that can be used for generating unsupervised clusters from the similarity matrix.
+The Idea_clusterer has different algorithms that can be used for generating unsupervised clusters from embeddings.
 
 
 author: Michael Tebbe (michael.tebbe@fu-berlin.de)
@@ -21,10 +21,14 @@ class Idea_clusterer():
 
         #pca = PCA(n_components=10)
         #similarity_matrix = pca.fit_transform(similarity_matrix)
-        kmeans = KMeans(n_clusters=20, random_state=0).fit(similarity_matrix)
+        kmeans = KMeans(n_clusters = 15).fit(similarity_matrix)
         labels = kmeans.labels_
-                
-        return labels
+        print(kmeans.inertia_)
+
+        distances = kmeans.transform(similarity_matrix)**2
+        distances = distances.sum(axis=1)
+        print("distances   __________", distances.min())
+        return labels, distances
 
     def cluster_optics(self, similarity_matrix):
         print('Clustering with optics.')

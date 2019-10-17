@@ -38,13 +38,13 @@ class Idea_mapper():
 
         
         #perform clustering on the embeddings
-        labels = self.create_cluster_labels(similarity_matrix_np, cluster_method)
+        labels, distances = self.create_cluster_labels(similarity_matrix_np, cluster_method)
 
         #perform dimensionality reduction on similarity matrix to get coordinates
         coordinates = self._reduce_dimensions(similarity_matrix, dim_reduction_algorithm)
         
         #create a JSON-object, where each idea has coordinates and labels
-        ideas_with_coordinates = self._attach_coordinates_to_ideas(ideas, coordinates, labels)
+        ideas_with_coordinates = self._attach_coordinates_to_ideas(ideas, coordinates, labels, distances)
         
         #print(json.dumps(ideas_with_coordinates, indent=4, sort_keys=True))
 
@@ -83,7 +83,7 @@ class Idea_mapper():
         labels = np.zeros(similarity_matrix_np.shape[0])
         if cluster_method is 'kmeans':
             #self.dimension_reducer.pca(similarity_matrix)
-            labels = self.idea_clusterer.cluster_kmeans(similarity_matrix_np)
+            labels, distances = self.idea_clusterer.cluster_kmeans(similarity_matrix_np)
         elif cluster_method is 'optics':
             labels = self.idea_clusterer.cluster_optics(similarity_matrix_np)
         elif cluster_method is 'spectral':
@@ -91,7 +91,7 @@ class Idea_mapper():
         elif cluster_method is 'agglomerative':
             labels = self.idea_clusterer.cluster_agglomerative(similarity_matrix_np)
         
-        return labels
+        return labels, distances
 
     
 
@@ -115,13 +115,14 @@ class Idea_mapper():
     
 
 
-    def _attach_coordinates_to_ideas(self, ideas, coordinates, labels):
+    def _attach_coordinates_to_ideas(self, ideas, coordinates, labels, distances):
         
         for i, idea in enumerate(ideas['results']['bindings']):
             idea['coordinates'] ={}
             idea['coordinates']['x'] = str(coordinates.at[i,'x'])
             idea['coordinates']['y'] = str(coordinates.at[i,'y'])
             idea['cluster_label'] = str(labels[i])
+            idea['distance_from_centroid'] = str(distances[i])
         return ideas
 
     def _read_embeddings_from_file(self):
