@@ -18,10 +18,12 @@ import numpy as np
 from dimension_reducer import Dimension_reducer
 from idea_embedder import Idea_embedder
 from idea_clusterer import Idea_clusterer
+from concept_finder import Concept_finder
 class Idea_mapper():
     dimension_reducer = Dimension_reducer()
     idea_clusterer = Idea_clusterer()
     idea_embedder = Idea_embedder()
+    concept_finder = Concept_finder()
     def map_ideas(self,query_response, similarity_algorithm='USE',dim_reduction_algorithm='PCA', cluster_method = 'kmeans'):
         #create JSON Object from query response
         ideas = json.loads(query_response) #pd.read_json(query_response)
@@ -43,8 +45,12 @@ class Idea_mapper():
         #perform dimensionality reduction on similarity matrix to get coordinates
         coordinates = self._reduce_dimensions(similarity_matrix, dim_reduction_algorithm)
         
-        #create a JSON-object, where each idea has coordinates and labels
-        ideas_with_coordinates = self._attach_coordinates_to_ideas(ideas, coordinates, labels, distances)
+        cluster_list = self._attach_topwords(ideas, labels)
+        
+        #create a JSON-object, where each idea has coordinates and labels and there's a list of topwords for each cluster
+        ideas_with_coordinates = self._attach_coordinates_to_ideas(ideas, coordinates, labels, distances, cluster_list)
+
+        
         
         #print(json.dumps(ideas_with_coordinates, indent=4, sort_keys=True))
 
@@ -115,14 +121,20 @@ class Idea_mapper():
     
 
 
-    def _attach_coordinates_to_ideas(self, ideas, coordinates, labels, distances):
-        
+    def _attach_coordinates_to_ideas(self, ideas, coordinates, labels, distances, cluster_list):
+
+        #attach cluster topconcepts
+        ideas['results']['clusters']=cluster_list
+
+        #attach ideas
         for i, idea in enumerate(ideas['results']['bindings']):
             idea['coordinates'] ={}
             idea['coordinates']['x'] = str(coordinates.at[i,'x'])
             idea['coordinates']['y'] = str(coordinates.at[i,'y'])
             idea['cluster_label'] = str(labels[i])
             idea['distance_from_centroid'] = str(distances[i])
+        
+        
         return ideas
 
     def _read_embeddings_from_file(self):
@@ -136,3 +148,13 @@ class Idea_mapper():
     def _write_embeddings_to_file(self, similarity_matrix, similarity_matrix_np):
         pd.DataFrame(similarity_matrix_np).to_json("./src/embeddings/similarity_matrix_np.json")
         similarity_matrix.to_json("./src/embeddings/similarity_matrix.json")
+    
+    def _attach_topwords(self, ideas, labels):
+        cluster_list = []
+        idea_list = []
+        for idea in ideas['results']['bindings']:
+            idea_list.append(idea['idea']['value'])
+        
+        cluster_list = self.concept_finder.get_cluster_list(idea_list, labels)
+
+        return cluster_list
